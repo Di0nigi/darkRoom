@@ -15,11 +15,11 @@ class photo:
         return
     def preview(self,shape):
         resized=resize(self.dataArrL,(computeRatio(shape,3/2),shape,3))
-        print("here")
+
         self.pilIm=Image.fromarray(resized)
-        print("here1")
+    
         self.preview = ImageTk.PhotoImage(self.pilIm)
-        print("here2")
+     
         return self.preview
 
 
@@ -40,6 +40,25 @@ def invert(dataArr):
     invertedArr=np.array(invertedArr)
     invertedArr8= (invertedArr / 256).astype(np.uint8)
     return invertedArr,invertedArr8
+
+def editWB(dataArr,sR,sB):
+    balancedarr=[]
+    for ind1,elem1 in enumerate(dataArr):
+        arr=[]
+        for ind2,elem2 in enumerate(elem1):
+            newR= min(65535, max(0, elem2[0] * sR))
+            newB= min(65535, max(0, elem2[2] * sB))
+            l=np.array([newR,elem2[1],newB])
+            arr.append(l)
+        arr=np.array(arr)
+        balancedarr.append(arr)
+    balancedarr=np.array(balancedarr)
+    balancedarr8= (balancedarr / 256).astype(np.uint8)
+    print("donebalancing")
+
+        
+
+    return balancedarr,balancedarr8
 
 
 

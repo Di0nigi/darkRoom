@@ -12,6 +12,8 @@ class app:
         self.r=root
         self.dpi = self.r.winfo_fpixels('1i')
         self.currentPhoto=None
+        self.sR=1
+        self.sB=1
         self.w=1000
         self.h=800
         self.r.title("darkRoom")
@@ -45,6 +47,18 @@ class app:
     def initEditColumn(self):
         self.invertBt=tk.Button(self.editColumn, text="invert", command=self.invertImage)
         self.invertBt.pack(side="top")
+        self.setWbBt=tk.Button(self.editColumn, text="WB", command=self.setWhiteBalance)
+        self.setWbBt.pack(side="top")
+        sliderB = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSb)
+        sliderB.pack()
+        sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
+        sliderR.pack()
+
+
+
+
+
+
         return
     
     def importFile(self):
@@ -53,7 +67,7 @@ class app:
         filetypes=[("All files", "*.*")]
     )
         print(self.currentImage)
-        print(self.dpi)
+
         if self.currentImage:
             image=im.openImage(self.currentImage)
             self.currentPhoto=image
@@ -81,6 +95,28 @@ class app:
             
 
             
+        return
+    
+    def setWhiteBalance(self):
+        if self.currentPhoto:
+         
+            b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sB)
+            
+            newPhoto=im.photo(b,p,format=".RAF",channels=3)
+            self.currentPhoto=newPhoto
+        
+            self.updatePhoto()
+
+
+        return
+
+    def setSr(self,val):
+        self.sR=float(val)
+        
+        return
+    def setSb(self,val):
+        self.sB=float(val)
+     
         return
     
     def updatePhoto(self):
