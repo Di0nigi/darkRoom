@@ -24,6 +24,23 @@ class photo:
 
 
 
+def invert(dataArr):
+    invertedArr=[]
+    for ind1,elem1 in enumerate(dataArr):
+        arr=[]
+        for ind2,elem2 in enumerate(elem1):
+            l=[]
+            l.append(65535-elem2[0])
+            l.append(65535-elem2[1])
+            l.append(65535-elem2[2])
+            l=np.array(l)
+            arr.append(l)
+        arr=np.array(arr)
+        invertedArr.append(arr)
+    invertedArr=np.array(invertedArr)
+    invertedArr8= (invertedArr / 256).astype(np.uint8)
+    return invertedArr,invertedArr8
+
 
 
 def resize(dataArr, size):    

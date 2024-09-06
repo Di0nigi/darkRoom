@@ -11,6 +11,7 @@ class app:
         
         self.r=root
         self.dpi = self.r.winfo_fpixels('1i')
+        self.currentPhoto=None
         self.w=1000
         self.h=800
         self.r.title("darkRoom")
@@ -55,12 +56,11 @@ class app:
         print(self.dpi)
         if self.currentImage:
             image=im.openImage(self.currentImage)
-            prev=image.preview(shape=self.mainFrame.winfo_width()-1)
+            self.currentPhoto=image
+            self.updatePhoto()
             #print("here3")
             #image.pilIm.show()
-            self.mainFrame.itemconfig(self.imageDisplayed,image=prev)
-            self.mainFrame.image = prev
-            self.mainFrame.pack()
+            
             
             
             
@@ -69,6 +69,26 @@ class app:
     def saveFile(self):
         return
     def invertImage(self):
+        if self.currentPhoto:
+            i,p=im.invert(self.currentPhoto.dataArr)
+            newPhoto=im.photo(i,p,format=".RAF",channels=3)
+            self.currentPhoto=newPhoto
+            self.updatePhoto()
+
+            #print("done")
+            #i=Image.fromarray(p)
+            #i.show()
+            
+
+            
+        return
+    
+    def updatePhoto(self):
+        prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_width()-1)
+        self.mainFrame.itemconfig(self.imageDisplayed,image=prev)
+        self.mainFrame.image = prev
+        self.mainFrame.pack()
+
         return
     
     def run(self):
