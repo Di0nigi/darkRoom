@@ -6,14 +6,15 @@ from scipy.ndimage import zoom
 
 
 class photo:
-    def __init__(self,data,format,channels):
+    def __init__(self,dataH,dataL,format,channels):
         self.type=format
-        self.dataArr=data
-        self.dimensions=data.shape
+        self.dataArr=dataH
+        self.dataArrL=dataL
+        self.dimensions=dataH.shape
         self.channels=channels
         return
     def preview(self,shape):
-        resized=resize(self.dataArr,(computeRatio(shape,3/2),shape,3))
+        resized=resize(self.dataArrL,(computeRatio(shape,3/2),shape,3))
         print("here")
         self.pilIm=Image.fromarray(resized)
         print("here1")
@@ -40,7 +41,8 @@ def computeRatio(dim,ratio):
 
 def openImage(filePath,height=4000,width=6000):
     with rawpy.imread(filePath) as raw:
-        im=raw.postprocess()
-        ph = photo(im,filePath[::-1][0:4][::-1],3)
+        imH=raw.postprocess(output_bps=16)
+        imL=raw.postprocess(output_bps=8)
+        ph = photo(imH,imL,filePath[::-1][0:4][::-1],3)
     
     return ph

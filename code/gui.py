@@ -25,18 +25,25 @@ class app:
         self.imageDisplayed=self.mainFrame.create_image(0,0,anchor="nw",image=self.blank)
         self.mainFrame.pack(side="left")
         self.editColumn=tk.Frame(self.r,height=self.h-15,width=100,bg="dark grey")
+        self.initEditColumn()
         self.editColumn.pack(side="right")
+        
         
         return
     
     def initSettingsBar(self):
         self.fileBt=tk.Button(self.settingBar, text="file", command=self.importFile)
         self.fileBt.pack(side="left")
+        self.saveBt=tk.Button(self.settingBar, text="save", command=self.saveFile)
+        self.saveBt.pack(side="left")
 
 
 
         return
+    
     def initEditColumn(self):
+        self.invertBt=tk.Button(self.editColumn, text="invert", command=self.invertImage)
+        self.invertBt.pack(side="top")
         return
     
     def importFile(self):
@@ -58,6 +65,10 @@ class app:
             
             
         
+        return
+    def saveFile(self):
+        return
+    def invertImage(self):
         return
     
     def run(self):
