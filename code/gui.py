@@ -53,6 +53,8 @@ class app:
         sliderB.pack()
         sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
         sliderR.pack()
+        self.rotateRBt=tk.Button(self.editColumn, text="rotate", command= self.rotateImage)
+        self.rotateRBt.pack()
 
 
 
@@ -84,7 +86,7 @@ class app:
         return
     def invertImage(self):
         if self.currentPhoto:
-            i,p=im.invert(self.currentPhoto.dataArr)
+            i,p=im.invertGpu(self.currentPhoto.dataArr)
             newPhoto=im.photo(i,p,format=".RAF",channels=3)
             self.currentPhoto=newPhoto
             self.updatePhoto()
@@ -95,6 +97,19 @@ class app:
             
 
             
+        return
+    
+    def rotateImage(self):
+        
+        if self.currentPhoto:
+            r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
+            if self.currentPhoto.orientation=="l":
+                newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
+            elif self.currentPhoto.orientation=="p":
+                newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
+            self.currentPhoto=newPhoto
+            self.updatePhoto()
+
         return
     
     def setWhiteBalance(self):
@@ -120,7 +135,10 @@ class app:
         return
     
     def updatePhoto(self):
-        prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_width()-1)
+        if self.currentPhoto.orientation=="l":
+            prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_width()-1)
+        elif self.currentPhoto.orientation=="p":
+            prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_height()-1)
         self.mainFrame.itemconfig(self.imageDisplayed,image=prev)
         self.mainFrame.image = prev
         self.mainFrame.pack()
