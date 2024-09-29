@@ -18,8 +18,12 @@ class photo:
         self.channels=channels
         self.orientation=orientation
         return
-    def preview(self,shape):
-        resized=resize(self.dataArrL,(computeRatio(shape,3/2),shape,3))
+    def preview(self,shape,ratio=3/2):
+        if self.orientation=="l":
+            resized=resize(self.dataArrL,(computeRatio(shape,ratio),shape,3))
+        elif self.orientation == "p":
+             resized=resize(self.dataArrL,(shape,computeRatio(shape,ratio),3))
+
 
         self.pilIm=Image.fromarray(resized)
     
@@ -204,8 +208,13 @@ def turn(dataArr,orientation):
 
 
 def computeRatio(dim,ratio):
+    
     dim2 = dim / ratio
+    #elif ori == "p":
+     #   dim2= ratio * dim
+    #print(dim2)
     return dim2
+
 
 def openImage(filePath,height=4000,width=6000):
     with rawpy.imread(filePath) as raw:
@@ -220,14 +229,18 @@ def openImage(filePath,height=4000,width=6000):
 
 def rotateImage(dataArr,dir):
     if dir=="l":
-        pass
+        rotated= np.transpose(dataArr, axes=(1, 0, 2))
+        rotated= np.flipud(rotated)
+        rotated8= (rotated / 256).astype(np.uint8)
     elif dir =="r":
-        c=dataArr.shape[1]
-        r=dataArr.shape[0]
-        rotated=np.zeros(shape=(c,r,3),dtype=np.uint16)
-        for x in range(c):
-            a=dataArr[:, x:x+1]
-            rotated[x]=a.reshape((1,r,3))#[::-1]
+        #c=dataArr.shape[1]
+        #r=dataArr.shape[0]
+        #rotated=np.zeros(shape=(c,r,3),dtype=np.uint16)
+        #for x in range(c):
+         #   a=dataArr[:, x:x+1]
+          #  rotated[x]=a.reshape((1,r,3))#[::-1]
+        rotated= np.transpose(dataArr, axes=(1, 0, 2))
+        rotated= np.fliplr(rotated)
         rotated8= (rotated / 256).astype(np.uint8)
 
     return rotated,rotated8

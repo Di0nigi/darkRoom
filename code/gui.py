@@ -3,8 +3,10 @@ from tkinter import filedialog
 import imageManager as im
 from PIL import Image, ImageTk
 import numpy as np
+from joblib import Parallel, delayed
 #import cv2
 
+processes=Parallel(n_jobs=1, backend='loky', prefer='processes', return_as="list")
 
 class app:
     def __init__(self,root):
@@ -22,7 +24,7 @@ class app:
         self.settingBar= tk.Frame(self.r,bg="dark grey",height=15)
         self.settingBar.pack(side="top", fill="x")
         self.initSettingsBar()
-        self.mainFrame = tk.Canvas(self.r,height=self.h-15,bg="black",width=self.w-100,highlightthickness=0,borderwidth=0)
+        self.mainFrame = tk.Canvas(self.r,height=self.h-15,bg="grey",width=self.w-100,highlightthickness=0,borderwidth=0)
 
         self.blank = ImageTk.PhotoImage(Image.fromarray(np.zeros(shape=(100,1500, 3), dtype=np.uint8)))
         self.imageDisplayed=self.mainFrame.create_image(0,0,anchor="nw",image=self.blank)
@@ -53,8 +55,10 @@ class app:
         sliderB.pack()
         sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
         sliderR.pack()
-        self.rotateRBt=tk.Button(self.editColumn, text="rotate", command= self.rotateImage)
+        self.rotateRBt=tk.Button(self.editColumn, text="rotate right", command= lambda: self.rotateImage("r"))
         self.rotateRBt.pack()
+        self.rotateLBt=tk.Button(self.editColumn, text="rotate left", command= lambda: self.rotateImage("l"))
+        self.rotateLBt.pack()
 
 
 
@@ -87,7 +91,7 @@ class app:
     def invertImage(self):
         if self.currentPhoto:
             i,p=im.invertGpu(self.currentPhoto.dataArr)
-            newPhoto=im.photo(i,p,format=".RAF",channels=3)
+            newPhoto=im.photo(i,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -99,14 +103,21 @@ class app:
             
         return
     
-    def rotateImage(self):
+    def rotateImage(self,dir):
         
         if self.currentPhoto:
-            r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
-            if self.currentPhoto.orientation=="l":
-                newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
-            elif self.currentPhoto.orientation=="p":
-                newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
+            if dir=="r":
+                r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
+                if self.currentPhoto.orientation=="l":
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
+                elif self.currentPhoto.orientation=="p":
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
+            elif dir=="l":
+                r,p = im.rotateImage(self.currentPhoto.dataArr,dir="l")
+                if self.currentPhoto.orientation=="l":
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
+                elif self.currentPhoto.orientation=="p":
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -117,7 +128,7 @@ class app:
          
             b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sB)
             
-            newPhoto=im.photo(b,p,format=".RAF",channels=3)
+            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
             self.currentPhoto=newPhoto
         
             self.updatePhoto()
@@ -136,8 +147,10 @@ class app:
     
     def updatePhoto(self):
         if self.currentPhoto.orientation=="l":
+            # print(self.mainFrame.winfo_width()-1)
             prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_width()-1)
         elif self.currentPhoto.orientation=="p":
+            # print(self.mainFrame.winfo_height()-1)
             prev=self.currentPhoto.preview(shape=self.mainFrame.winfo_height()-1)
         self.mainFrame.itemconfig(self.imageDisplayed,image=prev)
         self.mainFrame.image = prev
