@@ -117,14 +117,15 @@ __global__ void invert_image(unsigned short *data, unsigned short *inverted, uns
 
 
 
-def editWB(dataArr,sR,sB):
+def editWB(dataArr,sR,sB,sG=1):
     balancedarr=[]
     for ind1,elem1 in enumerate(dataArr):
         arr=[]
         for ind2,elem2 in enumerate(elem1):
             newR= min(65535, max(0, elem2[0] * sR))
+            newG= min(65535, max(0, elem2[1] * sG))
             newB= min(65535, max(0, elem2[2] * sB))
-            l=np.array([newR,elem2[1],newB])
+            l=np.array([newR,newG,newB])
             arr.append(l)
         arr=np.array(arr)
         balancedarr.append(arr)

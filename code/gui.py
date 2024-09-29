@@ -49,6 +49,8 @@ class app:
     def initEditColumn(self):
         self.invertBt=tk.Button(self.editColumn, text="invert", command=self.invertImage)
         self.invertBt.pack(side="top")
+        self.adjustWbBt=tk.Button(self.editColumn, text="WB adjust", command=self.adjustWhiteBalance)
+        self.adjustWbBt.pack(side="top")
         self.setWbBt=tk.Button(self.editColumn, text="WB", command=self.setWhiteBalance)
         self.setWbBt.pack(side="top")
         sliderB = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSb)
@@ -121,6 +123,22 @@ class app:
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
+        return
+    
+    def adjustWhiteBalance(self):
+        if self.currentPhoto:
+            m=257
+            ref=[201*m,150*m,118*m]
+            target=[71*m,182*m,175*m]
+            correctionR=(target[0]/ref[0])
+            correctionG=(target[1]/ref[1])
+            correctionB=(target[2]/ref[2])
+            print(correctionR)
+            print(correctionB)
+            b,p=im.editWB(self.currentPhoto.dataArr,correctionR,correctionB,sG=correctionG)
+            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
+            self.currentPhoto=newPhoto
+            self.updatePhoto()
         return
     
     def setWhiteBalance(self):
