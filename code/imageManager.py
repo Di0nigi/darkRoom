@@ -117,19 +117,21 @@ __global__ void invert_image(unsigned short *data, unsigned short *inverted, uns
 
 
 
-def editWB(dataArr,sR,sB,sG=1):
+def editWB(dataArr,sR,sG,sB):
     balancedarr=[]
-    for ind1,elem1 in enumerate(dataArr):
-        arr=[]
-        for ind2,elem2 in enumerate(elem1):
-            newR= min(65535, max(0, elem2[0] * sR))
-            newG= min(65535, max(0, elem2[1] * sG))
-            newB= min(65535, max(0, elem2[2] * sB))
-            l=np.array([newR,newG,newB])
-            arr.append(l)
-        arr=np.array(arr)
-        balancedarr.append(arr)
-    balancedarr=np.array(balancedarr)
+    balancedarr=np.clip(dataArr*[sR,sG,sB],a_min=[0,0,0],a_max=[65535,65535,65535])
+
+    #for ind1,elem1 in enumerate(dataArr):
+    #    arr=[]
+    #    for ind2,elem2 in enumerate(elem1):
+    #        newR= min(65535, max(0, elem2[0] * sR))
+    #        newG= min(65535, max(0, elem2[1] * sG))
+    #        newB= min(65535, max(0, elem2[2] * sB))
+    #        l=np.array([newR,newG,newB])
+    #        arr.append(l)
+    #    arr=np.array(arr)
+    #    balancedarr.append(arr)
+    #balancedarr=np.array(balancedarr)
     balancedarr8= (balancedarr / 256).astype(np.uint8)
     #print("donebalancing")
 
@@ -222,6 +224,8 @@ def openImage(filePath,height=4000,width=6000):
         imH=raw.postprocess(output_bps=16)
         imL=raw.postprocess(output_bps=8)
         ph = photo(imH,imL,filePath[::-1][0:4][::-1],3)
+        #print(imH[79][3507])
+        #print(imL[79][3507])
     return ph
 
 
@@ -245,3 +249,44 @@ def rotateImage(dataArr,dir):
         rotated8= (rotated / 256).astype(np.uint8)
 
     return rotated,rotated8
+
+
+
+def kelvinToRgb(kelvinTemp):
+
+    temperature = kelvinTemp / 100.0
+
+
+    if temperature <= 66:
+        red = 255
+    else:
+        red = temperature - 60
+        red = 329.698727446 * (red ** -0.1332047592)
+        red = max(0, min(255, red))
+
+    if temperature <= 66:
+        green = 99.4708025861 * np.log(temperature) - 161.1195681661
+        green = max(0, min(255, green))
+    else:
+        green = temperature - 60
+        green = 288.1221695283 * (green ** -0.0755148492)
+        green = max(0, min(255, green))
+
+
+    if temperature >= 66:
+        blue = 255
+    else:
+        if temperature <= 19:
+            blue = 0
+        else:
+            blue = 138.5177312231 * np.log(temperature - 10) - 305.0447927307
+            blue = max(0, min(255, blue))
+
+
+    rgb = (
+        int((red / 255.0) * 65535.0),
+        int((green / 255.0) * 65535.0),
+        int((blue / 255.0) * 65535.0)
+    )
+    return rgb
+

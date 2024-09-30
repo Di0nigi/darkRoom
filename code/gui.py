@@ -53,10 +53,10 @@ class app:
         self.adjustWbBt.pack(side="top")
         self.setWbBt=tk.Button(self.editColumn, text="WB", command=self.setWhiteBalance)
         self.setWbBt.pack(side="top")
-        sliderB = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSb)
-        sliderB.pack()
-        sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
-        sliderR.pack()
+        sliderTemp = tk.Scale(self.editColumn, from_=1500, to=6000,resolution=1, orient='horizontal',command=self.setTemp)
+        sliderTemp.pack()
+        #sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
+        #sliderR.pack()
         self.rotateRBt=tk.Button(self.editColumn, text="rotate right", command= lambda: self.rotateImage("r"))
         self.rotateRBt.pack()
         self.rotateLBt=tk.Button(self.editColumn, text="rotate left", command= lambda: self.rotateImage("l"))
@@ -128,14 +128,16 @@ class app:
     def adjustWhiteBalance(self):
         if self.currentPhoto:
             m=257
-            ref=[201*m,150*m,118*m]
-            target=[71*m,182*m,175*m]
-            correctionR=(target[0]/ref[0])
-            correctionG=(target[1]/ref[1])
-            correctionB=(target[2]/ref[2])
-            print(correctionR)
-            print(correctionB)
-            b,p=im.editWB(self.currentPhoto.dataArr,correctionR,correctionB,sG=correctionG)
+            #ref=[201*m,150*m,118*m]
+            ref2=[50008, 32311, 25322]
+            #target=[71*m,182*m,175*m]
+            target2=[128*m,128*m,128*m]
+            correctionR=(target2[0]/ref2[0])
+            correctionG=(target2[1]/ref2[1])
+            correctionB=(target2[2]/ref2[2])
+            #print(correctionR)
+            #print(correctionB)
+            b,p=im.editWB(self.currentPhoto.dataArr,correctionR,correctionG,correctionB)
             newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
             self.currentPhoto=newPhoto
             self.updatePhoto()
@@ -144,7 +146,7 @@ class app:
     def setWhiteBalance(self):
         if self.currentPhoto:
          
-            b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sB)
+            b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sG,self.sB)
             
             newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
             self.currentPhoto=newPhoto
@@ -154,13 +156,33 @@ class app:
 
         return
 
-    def setSr(self,val):
-        self.sR=float(val)
+    #def setSr(self,val):
+     #   self.sR=float(val)
         
-        return
-    def setSb(self,val):
-        self.sB=float(val)
+      #  return
+    #def setSb(self,val):
+    #    self.sB=float(val)
      
+    #    return
+
+    def setTemp(self,val):
+        self.temp=float(val)
+        ref=6500
+        desiredRGB = im.kelvinToRgb(self.temp)
+  
+        refRGB = im.kelvinToRgb(ref)
+    
+   
+        epsilon = 1e-6  
+        
+        self.sR = desiredRGB[0] / (refRGB[0] + epsilon)
+        self.sG = desiredRGB[1] / (refRGB[1] + epsilon)
+        self.sB = desiredRGB[2] / (refRGB[2] + epsilon)
+        
+
+
+
+
         return
     
     def updatePhoto(self):
