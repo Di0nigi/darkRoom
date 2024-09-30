@@ -26,13 +26,14 @@ class app:
         self.settingBar.pack(side="top", fill="x")
         self.initSettingsBar()
         self.mainFrame = tk.Canvas(self.r,height=self.h-15,bg="grey",width=self.w-100,highlightthickness=0,borderwidth=0)
-
+        self.mainFrame.bind("<Button-1>", self.getColor)
         self.blank = ImageTk.PhotoImage(Image.fromarray(np.zeros(shape=(100,1500, 3), dtype=np.uint8)))
         self.imageDisplayed=self.mainFrame.create_image(0,0,anchor="nw",image=self.blank)
         self.mainFrame.pack(side="left")
         self.editColumn=tk.Frame(self.r,height=self.h-15,width=100,bg="dark grey")
         self.initEditColumn()
         self.editColumn.pack(side="right")
+        self.wbGeneralRef=[0,0,0]
         
         
         return
@@ -97,10 +98,30 @@ class app:
             #savedImage.save(f"D:\dionigi\Pictures\DarkRoomImages\{name}.tiff",format="TIFF")
             print("saved")
         return
+    
+
+    def getColor(self, event):
+        originalWidth=self.currentPhoto.dataArr.shape[1]
+        originalHeight=self.currentPhoto.dataArr.shape[0]
+        displayedWidth=self.currentPhoto.preview.width()
+        displayedHeight = self.currentPhoto.preview.height()
+
+        x, y = event.x, event.y
+        scaleX = originalWidth / displayedWidth
+        scaleY = originalHeight / displayedHeight
+
+    # Convert the displayed coordinates to original image coordinates
+        xOg = int(x * scaleX)
+        yOg = int(y * scaleY)
+        print((xOg,yOg))
+        print(self.currentPhoto.dataArr[yOg][xOg])
+        self.wbGeneralRef=self.currentPhoto.dataArr[yOg][xOg]
+
+        return
     def invertImage(self):
         if self.currentPhoto:
             i,p=im.invertGpu(self.currentPhoto.dataArr)
-            newPhoto=im.photo(i,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
+            newPhoto=im.photo(i,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -118,15 +139,15 @@ class app:
             if dir=="r":
                 r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
                 if self.currentPhoto.orientation=="l":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
                 elif self.currentPhoto.orientation=="p":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
             elif dir=="l":
                 r,p = im.rotateImage(self.currentPhoto.dataArr,dir="l")
                 if self.currentPhoto.orientation=="l":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p")
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
                 elif self.currentPhoto.orientation=="p":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l")
+                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -136,16 +157,19 @@ class app:
         if self.currentPhoto:
             m=257
             #ref=[201*m,150*m,118*m]
-            ref2=[50008, 32311, 25322]
+
+            #if self.wbGeneralRef:
+                #self.wbGeneralRef=[50008, 32311, 25322]
+            
             #target=[71*m,182*m,175*m]
             target2=[128*m,128*m,128*m]
-            correctionR=(target2[0]/ref2[0])
-            correctionG=(target2[1]/ref2[1])
-            correctionB=(target2[2]/ref2[2])
+            correctionR=(target2[0]/self.wbGeneralRef[0])
+            correctionG=(target2[1]/self.wbGeneralRef[1])
+            correctionB=(target2[2]/self.wbGeneralRef[2])
             #print(correctionR)
             #print(correctionB)
             b,p=im.editWB(self.currentPhoto.dataArr,correctionR,correctionG,correctionB)
-            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
+            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
         return
@@ -155,7 +179,7 @@ class app:
          
             b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sG,self.sB)
             
-            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation)
+            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
         
             self.updatePhoto()
