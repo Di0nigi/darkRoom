@@ -4,6 +4,7 @@ import imageManager as im
 from PIL import Image, ImageTk
 import numpy as np
 from joblib import Parallel, delayed
+import imageio
 #import cv2
 
 processes=Parallel(n_jobs=1, backend='loky', prefer='processes', return_as="list")
@@ -89,6 +90,12 @@ class app:
         
         return
     def saveFile(self):
+        if self.currentPhoto:
+            name=f"drE_{self.currentPhoto.name}"
+            imageio.imwrite(f"D:\dionigi\Pictures\DarkRoomImages\{name}.tiff",self.currentPhoto.dataArr)
+            #savedImage=Image.fromarray(self.currentPhoto.dataArr,mode='I;16')
+            #savedImage.save(f"D:\dionigi\Pictures\DarkRoomImages\{name}.tiff",format="TIFF")
+            print("saved")
         return
     def invertImage(self):
         if self.currentPhoto:

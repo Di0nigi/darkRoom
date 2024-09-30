@@ -10,13 +10,14 @@ from pycuda.compiler import SourceModule
 
 
 class photo:
-    def __init__(self,dataH,dataL,format,channels,orientation="l"):
+    def __init__(self,dataH,dataL,format,channels,orientation="l",name="newPicture"):
         self.type=format
         self.dataArr=dataH
         self.dataArrL=dataL
         self.dimensions=dataH.shape
         self.channels=channels
         self.orientation=orientation
+        self.name=name
         return
     def preview(self,shape,ratio=3/2):
         if self.orientation=="l":
@@ -223,7 +224,8 @@ def openImage(filePath,height=4000,width=6000):
     with rawpy.imread(filePath) as raw:
         imH=raw.postprocess(output_bps=16)
         imL=raw.postprocess(output_bps=8)
-        ph = photo(imH,imL,filePath[::-1][0:4][::-1],3)
+        name=filePath.split("/")[-1][:-4]
+        ph = photo(imH,imL,filePath[::-1][0:4][::-1],3,name=name)
         #print(imH[79][3507])
         #print(imL[79][3507])
     return ph
