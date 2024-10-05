@@ -17,6 +17,7 @@ class app:
         self.currentPhoto=None
         self.sR=1
         self.sB=1
+        self.contrastVal  = 1
         self.w=1000
         self.h=800
         self.r.title("darkRoom")
@@ -53,10 +54,14 @@ class app:
         self.invertBt.pack(side="top")
         self.adjustWbBt=tk.Button(self.editColumn, text="WB adjust", command=self.adjustWhiteBalance)
         self.adjustWbBt.pack(side="top")
-        self.setWbBt=tk.Button(self.editColumn, text="WB", command=self.setWhiteBalance)
-        self.setWbBt.pack(side="top")
         sliderTemp = tk.Scale(self.editColumn, from_=1500, to=6000,resolution=1, orient='horizontal',command=self.setTemp)
         sliderTemp.pack()
+        self.setWbBt=tk.Button(self.editColumn, text="WB", command=self.setWhiteBalance)
+        self.setWbBt.pack(side="top")
+        sliderContrast = tk.Scale(self.editColumn, from_=-100, to=100,resolution=1, orient='horizontal',command=self.updateContrast)
+        sliderContrast.pack()
+        self.setC=tk.Button(self.editColumn, text="Contrast", command=self.setContrast)
+        self.setC.pack(side="top")
         #sliderR = tk.Scale(self.editColumn, from_=-2, to=2,resolution=0.01, orient='horizontal',command=self.setSr)
         #sliderR.pack()
         self.rotateRBt=tk.Button(self.editColumn, text="rotate right", command= lambda: self.rotateImage("r"))
@@ -120,8 +125,8 @@ class app:
         return
     def invertImage(self):
         if self.currentPhoto:
-            i,p=im.invertGpu(self.currentPhoto.dataArr)
-            newPhoto=im.photo(i,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
+            i,p=im.invert(self.currentPhoto.dataArr)
+            newPhoto=im.photo(i,p,i.copy(),format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -139,15 +144,15 @@ class app:
             if dir=="r":
                 r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
                 if self.currentPhoto.orientation=="l":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
+                    newPhoto=im.photo(r,p,r.copy(),format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
                 elif self.currentPhoto.orientation=="p":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
+                    newPhoto=im.photo(r,p,r.copy(),format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
             elif dir=="l":
                 r,p = im.rotateImage(self.currentPhoto.dataArr,dir="l")
                 if self.currentPhoto.orientation=="l":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
+                    newPhoto=im.photo(r,p,r.copy(),format=".RAF",channels=3,orientation="p",name=self.currentPhoto.name)
                 elif self.currentPhoto.orientation=="p":
-                    newPhoto=im.photo(r,p,format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
+                    newPhoto=im.photo(r,p,r.copy(),format=".RAF",channels=3,orientation="l",name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
 
@@ -168,8 +173,8 @@ class app:
             correctionB=(target2[2]/self.wbGeneralRef[2])
             #print(correctionR)
             #print(correctionB)
-            b,p=im.editWB(self.currentPhoto.dataArr,correctionR,correctionG,correctionB)
-            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
+            b,p=im.editWB(self.currentPhoto.dataArrOg,correctionR,correctionG,correctionB)
+            newPhoto=im.photo(b,p,self.currentPhoto.dataArrOg,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
             self.updatePhoto()
         return
@@ -177,13 +182,28 @@ class app:
     def setWhiteBalance(self):
         if self.currentPhoto:
          
-            b,p=im.editWB(self.currentPhoto.dataArr,self.sR,self.sG,self.sB)
+            b,p=im.editWB(self.currentPhoto.dataArrOg,self.sR,self.sG,self.sB)
             
-            newPhoto=im.photo(b,p,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
+            newPhoto=im.photo(b,p,dataO=self.currentPhoto.dataArrOg,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
         
             self.updatePhoto()
 
+
+        return
+    def updateContrast(self,val):
+        self.contrastVal = float(val)
+        return
+    
+    def setContrast(self):
+        if self.currentPhoto:
+            cfactor=np.interp(self.contrastVal, [-100, 100], [0, 2])
+            c,p = im.editContrast(self.currentPhoto.dataArrOg,cfactor)
+
+            newPhoto = im.photo(c,p,self.currentPhoto.dataArrOg,format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
+            self.currentPhoto=newPhoto
+
+            self.updatePhoto()
 
         return
 
@@ -209,12 +229,9 @@ class app:
         self.sR = desiredRGB[0] / (refRGB[0] + epsilon)
         self.sG = desiredRGB[1] / (refRGB[1] + epsilon)
         self.sB = desiredRGB[2] / (refRGB[2] + epsilon)
-        
-
-
-
-
+ 
         return
+    
     
     def updatePhoto(self):
         if self.currentPhoto.orientation=="l":
