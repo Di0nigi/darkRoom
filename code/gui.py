@@ -15,6 +15,8 @@ class app:
         self.r=root
         self.dpi = self.r.winfo_fpixels('1i')
         self.currentPhoto=None
+        self.preState=None
+        self.nextState=None
         self.sR=1
         self.sB=1
         self.contrastVal  = 1
@@ -44,9 +46,10 @@ class app:
         self.fileBt.pack(side="left")
         self.saveBt=tk.Button(self.settingBar, text="save", command=self.saveFile)
         self.saveBt.pack(side="left")
-
-
-
+        self.backBt=tk.Button(self.settingBar, text="undo",command=self.undoState)
+        self.backBt.pack(side="left")
+        self.frontkBt=tk.Button(self.settingBar, text="redo",command=self.nextState)
+        self.frontkBt.pack(side="left")
         return
     
     def initEditColumn(self):
@@ -108,8 +111,8 @@ class app:
     def getColor(self, event):
         originalWidth=self.currentPhoto.dataArr.shape[1]
         originalHeight=self.currentPhoto.dataArr.shape[0]
-        displayedWidth=self.currentPhoto.preview.width()
-        displayedHeight = self.currentPhoto.preview.height()
+        displayedWidth=self.currentPhoto.prev.width()
+        displayedHeight = self.currentPhoto.prev.height()
 
         x, y = event.x, event.y
         scaleX = originalWidth / displayedWidth
@@ -125,6 +128,7 @@ class app:
         return
     def invertImage(self):
         if self.currentPhoto:
+            self.preState=self.currentPhoto
             i,p=im.invert(self.currentPhoto.dataArr)
             newPhoto=im.photo(i,p,i.copy(),format=".RAF",channels=3,orientation=self.currentPhoto.orientation,name=self.currentPhoto.name)
             self.currentPhoto=newPhoto
@@ -141,6 +145,7 @@ class app:
     def rotateImage(self,dir):
         
         if self.currentPhoto:
+            self.preState=self.currentPhoto
             if dir=="r":
                 r,p = im.rotateImage(self.currentPhoto.dataArr,dir="r")
                 if self.currentPhoto.orientation=="l":
@@ -160,6 +165,7 @@ class app:
     
     def adjustWhiteBalance(self):
         if self.currentPhoto:
+            self.preState=self.currentPhoto
             m=257
             #ref=[201*m,150*m,118*m]
 
@@ -181,6 +187,7 @@ class app:
     
     def setWhiteBalance(self):
         if self.currentPhoto:
+            self.preState=self.currentPhoto
          
             b,p=im.editWB(self.currentPhoto.dataArrOg,self.sR,self.sG,self.sB)
             
@@ -197,6 +204,7 @@ class app:
     
     def setContrast(self):
         if self.currentPhoto:
+            self.preState=self.currentPhoto
             cfactor=np.interp(self.contrastVal, [-100, 100], [0, 2])
             c,p = im.editContrast(self.currentPhoto.dataArrOg,cfactor)
 
@@ -244,6 +252,16 @@ class app:
         self.mainFrame.image = prev
         self.mainFrame.pack()
 
+        return
+    
+    def undoState(self):
+        print("called")
+        if self.currentPhoto:
+            print(type(self.preState))
+            self.currentPhoto = self.preState
+            self.updatePhoto()
+        return
+    def nextState(self):
         return
     
     def run(self):

@@ -29,9 +29,9 @@ class photo:
 
         self.pilIm=Image.fromarray(resized)
     
-        self.preview = ImageTk.PhotoImage(self.pilIm)
+        self.prev = ImageTk.PhotoImage(self.pilIm)
      
-        return self.preview
+        return self.prev
 
 
 
@@ -61,7 +61,9 @@ def editContrast(dataArr,cFac):
     contrastArr8 = (contrastArr / 256).astype(np.uint8)
     return contrastArr,contrastArr8
 
+def editExposure(dataArr, stop):
 
+    return
 
 def editWB(dataArr,sR,sG,sB):
     balancedarr=[]
